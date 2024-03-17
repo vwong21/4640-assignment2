@@ -1,0 +1,5 @@
+- name: Create bun user
+  become: yes
+  user:
+    name: bun
+    state: present

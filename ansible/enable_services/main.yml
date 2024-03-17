@@ -1,0 +1,13 @@
+- name: Enable and start the application service
+  become: yes
+  systemd:
+    name: bun-4640-project
+    state: started
+    enabled: yes
+
+- name: Enable and start Caddy
+  become: yes
+  systemd:
+    name: caddy
+    state: started
+    enabled: yes

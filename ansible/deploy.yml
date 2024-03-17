@@ -1,0 +1,12 @@
+---
+- name: deploy
+  hosts: all 
+  become: yes 
+  roles:
+    - role: install_dependencies
+    - role: create_user
+    - role: transfer_files
+    - role: enable_services
+
+  vars:
+    ansible_ssh_private_key_file: "~/.ssh/a2_key"
