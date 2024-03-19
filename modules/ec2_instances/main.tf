@@ -22,6 +22,11 @@ variable "key_pair_name" {
   default = "a2_key"
 }
 
+resource "aws_key_pair" "local_key" {
+  key_name   = "a2_key"
+  public_key = file("~/.ssh/a2_key.pub")
+}
+
 # Creates ec2 instances and runs ansible configuration
 resource "aws_instance" "ec2_instances" {
   count           = var.instance_count
@@ -32,12 +37,6 @@ resource "aws_instance" "ec2_instances" {
   key_name = var.key_pair_name
   tags = {
     Name = var.instance_name
-  }
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      ansible-playbook -i "${self.public_ip}," ~/4640-assignment2/ansible/deploy.yml
-    EOT
   }
 }
 
