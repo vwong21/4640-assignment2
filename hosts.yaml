@@ -3,8 +3,8 @@ assignment2:
     instance1:
       ansible_ssh_private_key_file: "~/.ssh/a2_key"
       ansible_user: ubuntu
-      ansible_host: 3.91.170.130
+      ansible_host: 44.200.6.21
     instance2:
       ansible_ssh_private_key_file: "~/.ssh/a2_key"
       ansible_user: ubuntu
-      ansible_host: 54.87.190.205
+      ansible_host: 44.204.169.12

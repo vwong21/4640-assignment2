@@ -1,5 +1,6 @@
 # Variables from networking
-variable "subnet_ids" {}
+variable "public_subnet_1_id" {}
+variable "public_subnet_2_id" {}
 variable "security_group_id" {}
 
 # Instance count to specify individual instances
@@ -28,15 +29,26 @@ resource "aws_key_pair" "local_key" {
 }
 
 # Creates ec2 instances and runs ansible configuration
-resource "aws_instance" "ec2_instances" {
-  count           = var.instance_count
+resource "aws_instance" "ec2_instance-1" {
   ami             = "ami-080e1f13689e07408"
   instance_type   = var.instance_type
-  subnet_id       = var.subnet_ids[count.index]
+  subnet_id       = var.public_subnet_1_id
   security_groups = [var.security_group_id]
   key_name = var.key_pair_name
   tags = {
     Name = var.instance_name
   }
 }
+
+resource "aws_instance" "ec2_instance-2" {
+  ami             = "ami-080e1f13689e07408"
+  instance_type   = var.instance_type
+  subnet_id       = var.public_subnet_2_id
+  security_groups = [var.security_group_id]
+  key_name = var.key_pair_name
+  tags = {
+    Name = var.instance_name
+  }
+}
+
 

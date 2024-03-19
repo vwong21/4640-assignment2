@@ -1,0 +1,80 @@
+---
+- name: instance1
+  hosts: instance1
+  become: true
+  vars: 
+    ansible_ssh_private_key_file: "~/.ssh/a2_key"
+  tasks:
+    - name: Debug current filepath
+      debug:
+        msg: "Current filepath is {{ lookup('env', 'PWD') }}"
+    - name: install packages
+      ansible.builtin.apt:
+        name:
+          - debian-keyring
+          - debian-archive-keyring
+          - apt-transport-https
+          - curl
+          - unzip
+        state: present
+        update_cache: yes
+
+    - name: Install Bun
+      ansible.builtin.shell:
+        cmd: "curl -fsSL https://bun.sh/install | bash"
+
+    - name: Add Caddy GPG Key
+      ansible.builtin.shell: 
+        cmd: curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+
+    - name: Add Caddy Package Repo
+      ansible.builtin.shell:
+        cmd: curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+    
+    - name: Update APT Cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install Caddy
+      become: yes
+      ansible.builtin.apt:
+        name: caddy
+        state: present
+
+    - name: Create Bun User
+      become: yes
+      user:
+        name: bun
+        state: present
+    
+    - name: Transfer application files
+      become: yes
+      ansible.builtin.copy:
+        src: ~/4640-assignment2/4640-assignment-app-files/bun-htmx-4640
+        dest: /home/bun/bun-htmx-4640
+
+    - name: Transfer service file
+      become: yes
+      ansible.builtin.copy:
+        src: ~/4640-assignment2/4640-assignment-app-files/bun-4640-project.service
+        dest: /etc/systemd/system/bun-4640-project.service
+
+    - name: Transfer Caddyfile
+      become: yes
+      ansible.builtin.copy:
+        src: ~/4640-assignment2/4640-assignment-app-files/Caddyfile
+        dest: /etc/caddy/Caddyfile
+    
+    - name: Enable and start the application service
+      become: yes
+      systemd:
+        name: bun-4640-project
+        state: started
+        enabled: yes
+
+    - name: Enable and start Caddy
+      become: yes
+      systemd:
+        name: caddy
+        state: started
+        enabled: yes

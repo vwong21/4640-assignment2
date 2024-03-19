@@ -1,6 +1,3 @@
-# Defines Availability Zone variable
-variable "availability_zones" {}
-
 # Creates VPC called a2_vpc
 resource "aws_vpc" "a2_vpc" {
   cidr_block = "10.0.0.0/16"
@@ -11,13 +8,40 @@ resource "aws_internet_gateway" "a2_igw" {
   vpc_id = aws_vpc.a2_vpc.id
 }
 
-# Creates public subnets. Uses availability zone variable to specify each subnet
-resource "aws_subnet" "public_subnets" {
-  count             = length(var.availability_zones)
-  vpc_id            = aws_vpc.a2_vpc.id
-  cidr_block        = "10.0.${count.index}.0/24"
-  availability_zone = var.availability_zones[count.index]
+# Creates Route Table
+resource "aws_route_table" "a2_rt" {
+  vpc_id = aws_vpc.a2_vpc.id
+}
+
+# Sets Route to Internet Gateway
+resource "aws_route" "a2_route" {
+  route_table_id = aws_route_table.a2_rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id = aws_internet_gateway.a2_igw.id
+}
+
+resource "aws_subnet" "public_subnet_1" {
+  vpc_id                  = aws_vpc.a2_vpc.id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
+}
+
+resource "aws_subnet" "public_subnet_2" {
+  vpc_id                  = aws_vpc.a2_vpc.id
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = true
+}
+
+# Associates Route Table with subnets
+resource "aws_route_table_association" "association_1" {
+  subnet_id = aws_subnet.public_subnet_1.id
+  route_table_id = aws_route_table.a2_rt.id
+}
+resource "aws_route_table_association" "association_2" {
+  subnet_id = aws_subnet.public_subnet_2.id
+  route_table_id = aws_route_table.a2_rt.id
 }
 
 # Creates Security Group called a2_sg. Defines ingress for ssh and http.
@@ -47,8 +71,12 @@ resource "aws_security_group" "a2_sg" {
 }
 
 # Outputs variables
-output "public_subnets" {
-  value = aws_subnet.public_subnets[*].id
+output "public_subnet_1_id" {
+  value = aws_subnet.public_subnet_1.id
+}
+
+output "public_subnet_2_id" {
+  value = aws_subnet.public_subnet_2.id
 }
 
 output "security_group_id" {
